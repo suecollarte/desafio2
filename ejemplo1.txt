@@ -1,0 +1,1 @@
+[{"id":1,"codigo":"PS4 Pro","description":"descripcion producto","title":"title 1","stock":3,"thumbail":"https://www.shutterstock.com/image-vector/black-yellow-grunge-modern-thumbnail-600w-2098712566.jpg","price":399.99,"discount":0.1}]

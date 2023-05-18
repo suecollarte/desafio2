@@ -8,39 +8,52 @@ class ProductManager{
   
   }
   static producto=[]
+
 generaID = () => (ProductManager.producto.length === 0) ? 1: ProductManager.producto[ProductManager.producto.length -1].id +1
 
-abreArchivo = () => {
+abreArchivo = async() => {
   
- if(fs.existsSync(this.path)){
-  ProductManager.producto=fs.readFileSync(this.path,'utf-8');
-    return true
-  } 
-return false
-  
-}
-
-
-
-
-encuentraCode = (code,id) =>{
-  //const todo= this.producto;
-  
-  if (id >1)
-  {
-      const p1= ProductManager.producto.find(element => element.codigo === code );
-      if(p1 != undefined)
-      {
-        console.log("no es posible ya existe codigo",p1.codigo);
-        return false
-      }
-      
+ 
+  try{ 
+    if(fs.existsSync(this.path))
+    {
+      ProductManager.producto=await JSON.parse(fs.readFileSync(this.path,'utf-8'));
+      return true
+    } 
+      return false
   }
-  return true
+  catch(error){
+    console.log(error);
+  }
+ 
+  
+  
 }
 
-addproducto (product){
-        //const id=this.counter++;
+
+encuentraCode = async(code,id) =>{
+  //const todo= this.producto;
+  try{
+      if (id >1)
+      {
+          const p1= await ProductManager.producto.find(element => element.codigo === code );
+          if(p1 != undefined)
+          {
+            console.log("no es posible ya existe codigo",p1.codigo);
+            return false
+          }
+          
+      }
+      return true
+}
+catch(error){
+     console.log(error)
+}
+}
+
+addproducto=async(product)=>{
+        
+  try{
           let code=product['codigo'];
 
           
@@ -52,35 +65,136 @@ addproducto (product){
           
           product['id']=id;
           console.log("grabando",ProductManager.producto); 
-          console.log("grabando ---",product); 
+           
           ProductManager.producto.push(product);
         
-          fs.writeFileSync(this.path,JSON.stringify(ProductManager.producto), (error) =>{
-            if (error) return console.log("error");
-          }); 
+          fs.writeFileSync(this.path, JSON.stringify(ProductManager.producto), (error) => {
+              if (error)
+                return console.log("error");
+            }); 
           }
-        
+  }
+  catch(error){
+    console.log(error);
+  }
 
  }
 
 
-getProducts = () => this.abreArchivo()
+traeProducts = async() => this.abreArchivo()
 
-getProductsBy =(id) =>
+traeProductsBy =async(id) =>
  {
-  if (this.abreArchivo()){
-  const producto = ProductManager.producto.find(item => item.id === id)
-  if(producto === undefined)
-  { 
-    return `${id} NO EXISTE `;
+
+      try{
+          if (this.abreArchivo()){
+          const producto = ProductManager.producto.find(item => item.id === id)
+          if(producto === undefined)
+          { 
+            return `${id} NO EXISTE `;
+          }
+
+          else
+          {
+          return producto;
+          }
+          
+          }
+
+    }
+    catch(error){
+      console.log(error);
+    }
+ }
+
+ BorrarProducto = async(id) =>{
+  try{
+    if (this.abreArchivo()){
+         
+    const arr=ProductManager.producto.map(function(obj){
+        return obj;
+    });
+    
+    let arr2=[];
+    
+    for(let i=0;i< arr.length;i++)
+    {
+      
+        if(arr[i]['id']==id){
+           console.log("revisando item", arr[i]['id']);
+            console.log('se borra el elemento',id); 
+        }else{
+        let productoArray=arr[i];
+        arr2.push(productoArray);
+       }
+    }
+    ProductManager.producto=arr2;
+    console.log('Largo Nuevo array',ProductManager.producto.length);
+    try {
+    
+        fs.writeFileSync(this.path,JSON.stringify(ProductManager.producto,null,2));
+    
+        } 
+        catch (err){
+    
+        console.log('error',err);
+    
+        }
+
+    
+      }
+  }
+  catch(error){
+    console.log(error);
   }
 
-  else
-  {
-  return producto;
-  }
-  
  }
+
+
+ModificarProducto = async(id,description) =>{
+  try{
+
+    if (this.abreArchivo()){
+         
+      const arr=ProductManager.producto.map(function(obj){
+          return obj;
+      });
+      
+      let arr2=[];
+      
+      for(let i=0;i< arr.length;i++)
+      {
+        
+          if(arr[i]['id']==id){
+             console.log("revisando item", arr[i]['id']);
+             arr[i]['description']=description;
+              console.log('modificando',id, "descripcion", description); 
+          }
+          let productoArray=arr[i];
+          arr2.push(productoArray);
+         
+      }
+      ProductManager.producto=arr2;
+      
+      try {
+      
+          fs.writeFileSync(this.path,JSON.stringify(ProductManager.producto,null,2));
+      
+          } 
+          catch (err){
+      
+          console.log('error',err);
+      
+          }
+  
+      
+        }
+
+  }
+  catch(error){
+    console.log(error);
+  }
+
  }
 }
 
@@ -97,14 +211,21 @@ producto5={id:0,codigo: 'Nintendo 64', description:'descripcion producto', title
  
 
 
-console.log("LISTADO PRODUCTOS:",producto.getProducts()) ;
+console.log("LISTADO PRODUCTOS:",producto.traeProducts()) ;
 
 //REPETIDO
 console.log("Producto Repetido");
 producto.addproducto(producto1);
 producto.addproducto(producto2);
+producto.addproducto(producto3);
+producto.addproducto(producto4);
+producto.addproducto(producto5);
 
-//console.log("Producto  ",producto1.getProductsBy(3))
 
-//console.log("Producto  ",producto1.getProductsBy(6))
-  
+console.log("Producto  ",producto.traeProductsBy(3));
+
+console.log("Producto  ",producto.traeProductsBy(6)) ;
+
+
+console.log('Borrar elemento',producto.BorrarProducto(1));
+console.log('Modificar descripcion de id', producto.ModificarProducto(2,"CAMBIADO"))
